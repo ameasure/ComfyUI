@@ -9,11 +9,27 @@ import traceback
 import gc
 import inspect
 import time
+import functools
 
 import torch
 import nodes
 
 import comfy.model_management
+
+
+def log_execution_time(func):
+    """Decorator to log the execution time of a function."""
+
+    @functools.wraps(func)
+    def wrapper(server, prompt, outputs, current_item, extra_data, executed, prompt_id, outputs_ui, object_storage):
+        start_time = time.time()
+        result = func(server, prompt, outputs, current_item, extra_data, executed, prompt_id, outputs_ui, object_storage)
+        end_time = time.time()
+        class_type = prompt[current_item]['class_type']
+        logging.info(f'{class_type}:{current_item} executed in {end_time - start_time} seconds')
+        return result
+
+    return wrapper
 
 def get_input_data(inputs, class_def, unique_id, outputs={}, prompt={}, extra_data={}):
     valid_inputs = class_def.INPUT_TYPES()
@@ -120,6 +136,7 @@ def format_value(x):
     else:
         return str(x)
 
+@log_execution_time
 def recursive_execute(server, prompt, outputs, current_item, extra_data, executed, prompt_id, outputs_ui, object_storage):
     unique_id = current_item
     inputs = prompt[unique_id]['inputs']
@@ -376,11 +393,7 @@ class PromptExecutor:
                 # This call shouldn't raise anything if there's an error deep in
                 # the actual SD code, instead it will report the node where the
                 # error was raised
-                t_start = time.time()
                 success, error, ex = recursive_execute(self.server, prompt, self.outputs, output_node_id, extra_data, executed, prompt_id, self.outputs_ui, self.object_storage)
-                t_total = time.time() - t_start
-                class_type = prompt[output_node_id]['class_type']
-                logging.info(f'{class_type}:{output_node_id} executed in {t_total} seconds')
                 if success is not True:
                     self.handle_execution_error(prompt_id, prompt, current_outputs, executed, error, ex)
                     break
