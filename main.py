@@ -49,11 +49,14 @@ execute_prestartup_script()
 # Main code
 import asyncio
 import itertools
+import logging
 import shutil
 import threading
 import gc
 
 from comfy.cli_args import args
+
+logging.basicConfig(level=logging.INFO)
 
 if os.name == "nt":
     import logging
