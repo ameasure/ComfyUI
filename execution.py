@@ -378,7 +378,7 @@ class PromptExecutor:
                 # error was raised
                 t_start = time.time()
                 success, error, ex = recursive_execute(self.server, prompt, self.outputs, output_node_id, extra_data, executed, prompt_id, self.outputs_ui, self.object_storage)
-                t_total = t_start - time.time()
+                t_total = time.time() - t_start
                 class_type = prompt[output_node_id]['class_type']
                 logging.info(f'{class_type}:{output_node_id} executed in {t_total} seconds')
                 if success is not True:
