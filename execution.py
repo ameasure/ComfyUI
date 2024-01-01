@@ -8,6 +8,7 @@ import heapq
 import traceback
 import gc
 import inspect
+import time
 
 import torch
 import nodes
@@ -375,7 +376,11 @@ class PromptExecutor:
                 # This call shouldn't raise anything if there's an error deep in
                 # the actual SD code, instead it will report the node where the
                 # error was raised
+                t_start = time.time()
                 success, error, ex = recursive_execute(self.server, prompt, self.outputs, output_node_id, extra_data, executed, prompt_id, self.outputs_ui, self.object_storage)
+                t_total = t_start - time.time()
+                class_type = prompt[output_node_id]['class_type']
+                logging.info(f'{class_type}:{output_node_id} executed in {t_total} seconds')
                 if success is not True:
                     self.handle_execution_error(prompt_id, prompt, current_outputs, executed, error, ex)
                     break
