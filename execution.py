@@ -26,7 +26,8 @@ def log_execution_time(func):
         result = func(server, prompt, outputs, current_item, extra_data, executed, prompt_id, outputs_ui, object_storage)
         end_time = time.time()
         class_type = prompt[current_item]['class_type']
-        logging.info(f'{class_type}:{current_item} executed in {end_time - start_time} seconds')
+        inputs = prompt[current_item]['inputs']
+        logging.info(f'{class_type}:{inputs}:{current_item} executed in {end_time - start_time} seconds')
         return result
 
     return wrapper
